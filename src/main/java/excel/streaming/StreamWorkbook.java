@@ -613,11 +613,7 @@ public class StreamWorkbook implements Workbook
         if (this.streamSource ==null) {
             throw new IllegalArgumentException("StreamSource is not defined");
         }
-    	for (StreamSheet sheet : _xFromSxHash.values())
-    	{
-    		sheet.flushRows();
-    	}
-    	
+
         //Save the template
         File tmplFile = File.createTempFile("poi-sxssf-template", ".xlsx");
         try

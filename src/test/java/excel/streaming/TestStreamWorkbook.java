@@ -1,6 +1,7 @@
 package excel.streaming;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -14,25 +15,23 @@ import static org.junit.Assert.assertEquals;
 public class TestStreamWorkbook {
     @Test
     public void workbookStreamWrite() throws IOException {
-        StreamWorkbook streamWb = createWorkbook("S1", "value", Stream.of(0, 1, 2));
+        StreamWorkbook streamWb = createWorkbook("S1", "value", Stream.of(1, 2, 3));
         XSSFWorkbook xssfWb = (XSSFWorkbook) writeOutAndReadBack(streamWb);
         XSSFSheet st = xssfWb.getSheet("S1");
-        for (int i = 0; i < 2; i++) {
+        assertEquals(3, st.getLastRowNum());
+        for (int i = 0; i < 4; i++) {
             assertEquals("value" + i + "0", st.getRow(i).getCell(0).getStringCellValue());
         }
     }
 
     private StreamWorkbook createWorkbook(String sheetName, String prefix, Stream<Integer> stream) {
         StreamWorkbook wb = new StreamWorkbook();
-        wb.createSheet(sheetName);
-        wb.setStreamSource(st -> stream.map(i -> {
-            try {
-                st.createRow(i).createCell(0).setCellValue(prefix + i + "0");
-                return st.flushRows();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }));
+        Sheet sheet = wb.createSheet(sheetName);
+        sheet.createRow(0).createCell(0).setCellValue(prefix + 0 + "0");
+        wb.setStreamSource(st -> Stream.concat(Stream.of(st.flushRowsUnchecked()), stream.map(i -> {
+            st.createRow(i).createCell(0).setCellValue(prefix + i + "0");
+            return st.flushRowsUnchecked();
+        })));
         return wb;
     }
 

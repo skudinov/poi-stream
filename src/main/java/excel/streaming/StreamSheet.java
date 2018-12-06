@@ -1284,6 +1284,14 @@ public class StreamSheet implements Sheet, Cloneable
         return this.flushRows(0);
     }
 
+    public String flushRowsUnchecked() {
+        try {
+            return flushRows();
+        } catch (IOException e) {
+            throw new RuntimeException("Error flushing rows", e);
+        }
+    }
+
     private void flushOneRow(Writer out) throws IOException
     {
         Integer firstRowNum = _rows.firstKey();
