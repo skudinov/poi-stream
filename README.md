@@ -6,17 +6,15 @@ The XML stream supposed to be mapped out of data Stream with help of StreamSheet
 see sample:
 
 ```java
-        Stream<Integer> stream = Stream.of(0, 1, 2, 3);
+        Stream<Integer> stream = Stream.of(1, 2, 3);
         StreamWorkbook wb = new StreamWorkbook();
-        wb.createSheet(sheetName);
-        wb.setStreamSource(st -> stream.map(i -> {
-            try {
-                st.createRow(i).createCell(0).setCellValue(prefix + i + "0");
-                return st.flushRows();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }));
+        Sheet sheet = wb.createSheet(sheetName);
+        // create header row
+        sheet.createRow(0).createCell(0).setCellValue(prefix + 0 + "0");
+        // flush header row even if there might not be data rows
+        wb.setStreamSource(st -> Stream.concat(Stream.of(st.flushRowsUnchecked()), stream.map(i -> {
+            st.createRow(i).createCell(0).setCellValue(prefix + i + "0");
+            return st.flushRowsUnchecked();
+        })));
         wb.write(outputStream);
-
 ```
